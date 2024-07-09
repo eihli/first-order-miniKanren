@@ -13,8 +13,34 @@
   (syntax-rules ()
     ((_ e ...) (begin (example e) ...))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Examples
+(require "common.rkt")
+(require "mk-fo.rkt")
+(require "microk-fo.rkt")
+(require "tools.rkt")
+
+(include "mk-syntax.rkt")
+
+(define-relation (bit-xoro x y z)
+  (conde
+   ((== x 0) (== y 0) (== z 0))
+   ((== x 0) (== y 1) (== z 1))
+   ((== x 1) (== y 0) (== z 1))
+   ((== x 1) (== y 1) (== z 0))))
+
+(query (q)
+       (fresh (x y z)
+              (bit-xoro x y z)
+              (== q `(,x ,y ,z))))
+
+(explore step (query (q) (reverseo q '(3 2 1))))
+
+(explore
+ step
+ (query (q)
+        (fresh (q x y z)
+               (bit-xoro x y z)
+               (== q `(,x ,y ,z)))))
+
 (define-relation (appendo ab c abc)
   (conde
     ((== '() ab) (== c abc))
@@ -23,12 +49,28 @@
        (== `(,a . ,bc) abc)
        (appendo b c bc)))))
 
+
+(explore step (query (q) (appendo )))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Examples
+(define-relation (appendo ab c abc)
+  (conde
+   ((== '() ab) (== c abc))
+   ((fresh (a b bc)
+           (== `(,a . ,b) ab)
+           (== `(,a . ,bc) abc)
+           (appendo b c bc)))))
+
+(explore step (query (q) (appendo q '(2) '(1 2))))
+
 (examples
-  (run* (q) (appendo '(1 2 3) '(4 5) q))
-  (run* (p q) (appendo p q '(1 2 3 4 5)))
-  ;; We can change our search strategy by choosing a different way to step.
-  ;; `step` gives us a typical interleaving search.
-  (run*/step step (p q) (appendo p q '(1 2 3 4 5))))
+ (run* (q) (appendo '(1 2 3) '(4 5) q))
+ (run* (p q) (appendo p q '(1 2 3 4 5)))
+ ;; We can change our search strategy by choosing a different way to step.
+ ;; `step` gives us a typical interleaving search.
+ (run*/step step (p q) (appendo p q '(1 2 3 4 5))))
 
 
 (define-relation (reverseo ys sy)
@@ -52,7 +94,7 @@
 (displayln
 "We can explore the backwards reverseo query to observe its bad behavior.")
 (displayln "Stop exploring by triggering EOF (probably Ctrl-D).")
-(explore step (query (q) (reverseo q '(3 2 1))))
+(explore step (query (q) (reverseo q '(2 1))))
 
 ;; A miniscule relational interpreter.
 (define-relation (evalo expr env value)
