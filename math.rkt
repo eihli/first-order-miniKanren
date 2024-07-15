@@ -2,7 +2,10 @@
 (require "tools.rkt")
 (provide
  poso
+ <lo
+ <o
  pluso)
+
 (define-relation (appendo xs ys xsys)
   (conde ((== xs '()) (== ys xsys))
          ((fresh (x zs zsys)

@@ -1,3 +1,6 @@
+#lang racket
+(require "microk-fo.rkt")
+(provide run)
 (define-syntax define-relation
   (syntax-rules ()
     ((_ (name param ...) g ...)
@@ -25,20 +28,24 @@
   (syntax-rules ()
     ((_ (g gs ...) (h hs ...) ...)
      (disj* (conj* g gs ...) (conj* h hs ...) ...))))
+
 ;; Queries
 (define-syntax query
   (syntax-rules ()
     ((_ (x ...) g0 gs ...)
      (let ((goal (fresh (x ...) (== (list x ...) initial-var) g0 gs ...)))
        (pause empty-state goal)))))
+
 (define (stream-take n s)
   (if (eqv? 0 n) '()
       (let ((s (mature s)))
         (if (pair? s)
             (cons (car s) (stream-take (and n (- n 1)) (cdr s)))
             '()))))
+
 (define-syntax run
   (syntax-rules ()
     ((_ n body ...) (map reify/initial-var (stream-take n (query body ...))))))
+
 (define-syntax run*
   (syntax-rules () ((_ body ...) (run #f body ...))))

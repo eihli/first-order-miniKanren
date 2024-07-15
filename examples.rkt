@@ -27,32 +27,6 @@
    ((== x 1) (== y 0) (== z 1))
    ((== x 1) (== y 1) (== z 0))))
 
-(query (q)
-       (fresh (x y z)
-              (bit-xoro x y z)
-              (== q `(,x ,y ,z))))
-
-(explore step (query (q) (reverseo q '(3 2 1))))
-
-(explore
- step
- (query (q)
-        (fresh (q x y z)
-               (bit-xoro x y z)
-               (== q `(,x ,y ,z)))))
-
-(define-relation (appendo ab c abc)
-  (conde
-    ((== '() ab) (== c abc))
-    ((fresh (a b bc)
-       (== `(,a . ,b) ab)
-       (== `(,a . ,bc) abc)
-       (appendo b c bc)))))
-
-
-(explore step (query (q) (appendo )))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Examples
 (define-relation (appendo ab c abc)
