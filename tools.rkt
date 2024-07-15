@@ -15,13 +15,18 @@
  parallel-step-simple
  parallel-step
 
+ stream->choices
  mature/step
  stream-take/step
  run/step-simplify
  run/step
  run*/step
  step
- 
+
+ query
+ goal->constraints
+ walked-term
+
  drive/policy
  drive/stdio
 
@@ -82,7 +87,9 @@
          (#f          #f)
          (st          (pause st (=/= t1 t2))))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Transform into Disjunctive Normal Form.
 (define (dnf/stream s)
   (define (push-pause st g)
@@ -201,6 +208,7 @@
 
 (define (simplify s)
   (prune/stream (dnf/stream s)))
+
 (define-syntax run/step-simplify
   (syntax-rules ()
     ((_ step n body ...) (map reify/initial-var (stream-take/step
