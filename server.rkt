@@ -58,33 +58,114 @@
     (jsexpr:response/jsexpr (hash 'choices (with-output-to-string (lambda ()
                                                                     (write (serialize (serializable-choices choices)))))))))
 
-(define (step request)
-  (let ((choices
-         (stream->choices
-          (prune/stream
-           (dnf/stream
-            (pause
-             empty-state
-             (fresh (a b)
-                    (== `(,a ,b) initial-var)
-                    (appendo a b `(1 2 3 4)))))))))
-    (jsexpr:response/jsexpr (hash 'choices (with-output-to-string (lambda ()
-                                                                    (write (serialize (serializable-choices choices)))))))))
-
+(let ((choices
+       (stream->choices
+        (parallel-step
+         (prune/stream
+          (dnf/stream
+           (pause
+            empty-state
+            (fresh (a b)
+                   (== `(,a ,b) initial-var)
+                   (appendo a b `(1 2 3 4))))))))))
+  choices)
 
 (let ((choices
        (stream->choices
-        (prune/stream
-         (dnf/stream
-          (pause
-           empty-state
-           (fresh (a b)
-                  (== `(,a ,b) initial-var)
-                  (appendo a b `(1 2 3 4)))))))))
+        (parallel-step
+         (pause
+          empty-state
+          (fresh (a b)
+                 (== `(,a ,b) initial-var)
+                 (appendo a b `(1 2 3 4))))))))
+  (let ((stream (cadr choices)))
+    (stream->choices (parallel-step stream))))
+
+(define (serialize-choices choices)
+  (map serialize-choice choices))
+
+;; stream->choices returns:
+;;   - list of bind
+;;   - empty list
+(define (serialize-choice choice)
+  (match choice
+    ((bind st g)
+     (string-append "(bind "
+                    (serialize-state st)
+                    " "
+                    (serialize-goal g)
+                    ")"))
+    ((pause st g)
+     (string-append "(pause "
+                    (serialize-state st)
+                    " "
+                    (serialize-goal g)
+                    ")"))))
+
+(define (serialize-state st)
+  (let ((sub (state-sub st))
+        (diseq (state-diseq st))
+        (types (state-types st))
+        (distypes (state-distypes st)))
+    (print sub)
+    (format "(state ~a () () ())" (serialize-sub sub))))
+
+(define (intersperse lst sep)
+  (if (= 1 (length lst))
+      lst
+      `(,(car lst) ,sep . ,(intersperse (cdr lst) sep))))
+
+(define (serialize-sub sub)
+  (format "(~a)" (apply string-append (intersperse (map serialize-term sub) " "))))
+
+(define (serialize-var v)
+  (format "(var ~a ~a)"
+          (or (var-name v) "#f")
+          (var-index v)))
+
+(define (serialize-term t)
+  (print t)
+  (newline)
+  (cond
+    ((var? t) (serialize-var t))
+    ((and (pair? t) (not (pair? (cdr t))))
+     (format "(~a . ~a)" (serialize-term (car t)) (serialize-term (cdr t))))
+    ((and (pair? t) (pair? (cdr t)))
+     (format "(~a . ~a" (serialize-term (car t)) (serialize-list-of-terms (cdr t))))
+    ((symbol? t) (format "(symbol ~a)" (symbol->string t)))
+    ((number? t) (number->string t))
+    ((null? t) "()")
+    (else (let ()
+            (raise 'unhandled)))))
+
+(define (serialize-list-of-terms lst)
+  (format "(~a)" (apply string-append (intersperse (map serialize-term lst) " "))))
+
+(let ((x (var/fresh 'x))
+      (y (var/fresh 'y)))
   (list
-   (serialize (serializable-choices choices))
-   (jsexpr? (hash 'choices (with-output-to-string (lambda ()
-                                                    (write (serialize (serializable-choices choices)))))))))
+   (serialize-sub (state-sub (unify y 42 (unify x y empty-state))))
+   (state-sub (unify y 42 (unify x y empty-state)))))
+
+(define (serialize-goal g)
+  "some-goal")
+(pause
+ empty-state
+ (fresh (a b)
+        (== `(,a ,b) initial-var)
+        (appendo a b `(1 2 3 4))))
+
+(let ((choices
+       (stream->choices
+        (parallel-step
+         (prune/stream
+          (dnf/stream
+           (pause
+            empty-state
+            (fresh (a b)
+                   (== `(,a ,b) initial-var)
+                   (appendo a b `(1 2 3 4))))))))))
+  (list choices (serialize-choices choices)))
 
 (define-values (route-dispatch route-url)
   (dispatch:dispatch-rules
@@ -105,4 +186,3 @@
    #:servlet-regexp #rx""
    #:stateless? #t))
 
-(run)

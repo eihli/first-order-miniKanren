@@ -23,6 +23,8 @@
  run*/step
  step
 
+ stream->choices
+
  query
  goal->constraints
  walked-term
@@ -232,10 +234,11 @@
 
 (define (stream->choices s)
   (let loop ((s (prune/stream (dnf/stream s))))
+    ;; After dnf and prune, stream will always be either mplus, disj, result, or #f
     (match s
       ((mplus s1 s2) (append (loop s1) (loop s2)))
       (#f            '())
-      (`(,st . ,s)   (cons st (loop s)))
+      (`(,st . ,s)   (cons st (loop s)))  ;; I don't think this can ever be true...
       (s             (list s)))))
 
 (define (walked-term t st) (walk* t (state-sub st)))
