@@ -37,7 +37,42 @@
            (== `(,a . ,bc) abc)
            (appendo b c bc)))))
 
-(explore step (query (q) (appendo q '(2) '(1 2))))
+;;;; Works fine
+;; (explore step (query (q) (appendo q '(2) '(1 2))))
+
+(explore parallel-step (query  (a b) (appendo a b '(1 2 3 4))))
+;;;; Errors with the following:
+;;
+;; Using step procedure: parallel-step
+;; Exploring query:
+;; (query (a b) (appendo a b (quote (1 2 3 4))))
+
+;; ================================================================================
+;; Current Depth: 0
+;; Number of Choices: 1
+
+;; | Choice 1:
+;; |  a = #s(var a 3)
+;; |  b = #s(var b 4)
+;; |  Constraints:
+;; |  * (appendo #s(var a 3) #s(var b 4) (1 2 3 4))
+
+;; [h]elp, [u]ndo, or choice number>
+;; 1
+
+;; ================================================================================
+;; Previous Choice:
+;; |  a = #s(var a 3)
+;; |  b = #s(var b 4)
+;; |  Constraints:
+;; |  * (appendo #s(var a 3) #s(var b 4) (1 2 3 4))
+
+;; Current Depth: 1
+;; Number of Choices: 2
+
+;; | Choice 1:
+;; match: no matching clause for #s(bind #s(state ((#s(var #f 0) #s(var a 3) #s(var b 4))) () () ()) #s(conj #s(== () #s(var a 3)) #s(== #s(var b 4) (1 2 3 4))))
+
 
 (examples
  (run* (q) (appendo '(1 2 3) '(4 5) q))
