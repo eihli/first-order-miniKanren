@@ -31,7 +31,9 @@
  drive/stdio
 
  explore/stream
- explore)
+ explore
+
+ stream->choices)
 
 (require "microk-fo.rkt")
 (require "mk-fo.rkt")
@@ -199,6 +201,7 @@
 ;; Step-parameterized miniKanren run interface
 (define (mature/step step s)
   (if (mature? s) s (mature/step step (step s))))
+
 (define (stream-take/step step n s)
   (if (eqv? 0 n) '()
       (let ((s (mature/step step s)))
