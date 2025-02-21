@@ -21,4 +21,4 @@
   disj*
   )
 (require "microk-fo.rkt")
-(include "mk-syntax.rkt")
+(require "mk-syntax.rkt")

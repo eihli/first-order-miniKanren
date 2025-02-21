@@ -1,6 +1,20 @@
 #lang racket
 (require "microk-fo.rkt")
-(provide run)
+(provide
+  define-relation
+  succeed
+  fail
+  conj*
+  disj*
+  conj
+  disj
+  fresh
+  conde
+  query
+  run
+  run*
+  stream-take)
+
 (define-syntax define-relation
   (syntax-rules ()
     ((_ (name param ...) g ...)

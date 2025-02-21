@@ -37,7 +37,7 @@
            (== `(,a . ,bc) abc)
            (appendo b c bc)))))
 
-(explore step (query (q) (appendo q '(2) '(1 2))))
+(explore step (query (a b ab) (appendo a b '(1 2 3 4))))
 
 (examples
  (run* (q) (appendo '(1 2 3) '(4 5) q))

@@ -234,7 +234,7 @@
   (displayln (string-append margin prefix body)))
 
 (define (stream->choices s)
-  (let loop ((s (prune/stream (dnf/stream s))))
+  (let loop ((s (simplify s)))
     (match s
       ((mplus s1 s2) (append (loop s1) (loop s2)))
       (#f            '())

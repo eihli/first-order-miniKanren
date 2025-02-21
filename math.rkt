@@ -4,7 +4,12 @@
  poso
  <lo
  <o
- pluso)
+ <=o
+ pluso
+ eval-expo
+ build-num
+ *o
+ lookupo)
 
 (define-relation (appendo xs ys xsys)
   (conde ((== xs '()) (== ys xsys))
@@ -62,6 +67,11 @@
     ((fresh (index)
        (== `(var ,index) expr)        ;; expr is a variable
        (lookupo index env value)))
+    ((fresh (n m v nv mv)
+       (== `(*o ,n ,m ,v) expr)
+       (eval-expo n env nv)
+       (eval-expo m env mv)
+       (*o nv mv value)))
     ;((fresh (c va vd)
        ;(== `(car ,c) expr)            ;; expr is a car operation
        ;(== va value)
