@@ -33,6 +33,15 @@
  explore/stream
  explore
 
+ init-explore
+ explore-loc
+ explore-loc-tree
+ explore-loc?
+ explore-node-choices
+ explore-choice
+ explore-tree-finished?
+ explore-undo
+
  stream->choices)
 
 (require "microk-fo.rkt")
@@ -342,13 +351,19 @@
   (let* ([expanded-choices (stream->choices (step choice))])
     (cond
       [(null? expanded-choices) '()]
+      ;; If we only have 1 choice, and if that choice is not a result (state?),
+      ;; then automatically "choose" it. Continue until we have a "real" choice
+      ;; or a result.
       [(and (= 1 (length expanded-choices)) (not (state? (car expanded-choices))))
        (expand-choice (car expanded-choices) step)]
       [else expanded-choices])))
+
 (define (expand-choice-node choices step i)
   (explore-node i (expand-choice (list-ref choices i) step) '()))
 
 ;; tree manipulation
+;; Because we're building this tree as we explore, we can't simply
+;; "traverse" down to a child. We must birth the child as we travel.
 (define (explore-choice exp-loc step choice)
   (match exp-loc
     [(explore-loc (explore-node i chs xchs) parent)
@@ -408,6 +423,7 @@
   #| (printf "Tree: ~s\n" tree) |#
   #| (printf "Context: ~s\n" (explore-loc-context exp-loc)) |#
   (pprint-choices (explore-node-choices tree) qvars))
+
 (define (explore-tree-input)
   (printf "\n[u]ndo, or choice number> \n")
   (read))
