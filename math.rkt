@@ -8,6 +8,8 @@
  pluso
  eval-expo
  build-num
+ make-num
+ unbuild-num
  *o
  lookupo)
 
@@ -65,9 +67,27 @@
 ;; position, we can synthesize programs.
 (define-relation (eval-expo expr env value)
   (conde ;; NOTE: this clause order is optimized for quine generation.
+    ((fresh (n m nv mv vv)
+       (== `(*o ,n ,m) expr)
+       (eval-expo n env `(number . ,nv))
+       (eval-expo m env `(number . ,mv))
+       (== value `(number . ,vv))
+       (*o nv mv vv)))
+    ((fresh (bits)
+       (== `(number . ,bits) expr)
+       (== expr value)
+       (from-zero-countero bits)))
+    ((fresh (index)
+       (== `(var ,index) expr)        ;; expr is a variable
+       (lookupo index env value)))
     ((fresh (body)
        (== `(lambda ,body) expr)      ;; expr is a procedure definition
        (== `(closure ,body ,env) value)))
+    ((fresh (rator rand arg env^ body)
+            (== `(app ,rator ,rand) expr)  ;; expr is a procedure application
+            (eval-expo rator env `(closure ,body ,env^))
+            (eval-expo rand env arg)
+            (eval-expo body `(,arg . ,env^) value)))
     ;; If this is before lambda, quoted closures become likely.
     ((== `(quote ,value) expr) ;; expr is a literal constant
      (atomo value))
@@ -79,14 +99,6 @@
        (== `(,va . ,vd) value)
        (eval-expo a env va)
        (eval-expo d env vd)))
-    ((fresh (index)
-       (== `(var ,index) expr)        ;; expr is a variable
-       (lookupo index env value)))
-    ((fresh (n m v nv mv)
-       (== `(*o ,n ,m ,v) expr)
-       (eval-expo n env nv)
-       (eval-expo m env mv)
-       (*o nv mv value)))
     ((fresh (c va vd)
        (== `(car ,c) expr)            ;; expr is a car operation
        (== va value)
@@ -95,11 +107,7 @@
        (== `(cdr ,c) expr)            ;; expr is a cdr operation
        (== vd value)
        (eval-expo c env `(,va . ,vd))))
-    ((fresh (rator rand arg env^ body)
-       (== `(app ,rator ,rand) expr)  ;; expr is a procedure application
-       (eval-expo rator env `(closure ,body ,env^))
-       (eval-expo rand env arg)
-       (eval-expo body `(,arg . ,env^) value)))))
+    ))
 
 ;; Lookup the value a variable is bound to.
 ;; Variables are represented namelessly using relative De Bruijn indices.
@@ -135,6 +143,9 @@
      (cons 0
            (build-num (quotient n 2))))
     ((zero? n) '())))
+
+(define (make-num x)
+  `(number . ,(build-num x)))
 
 (define (unbuild-num n)
   (let loop ((n n) (r 0) (i 0))
