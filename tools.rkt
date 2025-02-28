@@ -242,13 +242,14 @@
   (define body (string-replace (string-trim (pprint/string v)) "\n" indent))
   (displayln (string-append margin prefix body)))
 
+;; Converts a nested tree of `mplus` to a list of their leaf choices.
 (define (stream->choices s)
   (let loop ((s (simplify s)))
     (match s
       ((mplus s1 s2) (append (loop s1) (loop s2)))
       (#f            '())
       (`(,st . ,s)   (cons st (loop s)))
-      (s             (list s)))))
+      (s             (list s)))))  ;; list, so that it works with the `append` above.
 
 (define (walked-term t st) (walk* t (state-sub st)))
 
@@ -372,6 +373,7 @@
                    [(expanded-node) (if x-ind (list-ref xchs x-ind) (expand-choice-node chs step choice))]
                    [(expanded-context) (explore-context choice (append xc hes) chs parent)])
        (explore-loc expanded-node expanded-context))]))
+
 (define (explore-undo exp-loc)
   (match exp-loc
     [(explore-loc tree (explore-context i siblings ch ctx))
@@ -447,7 +449,8 @@
             [(and (integer? input) (<= 1 input) (<= input (length (explore-node-choices tree))))
              (explore-choice s step (- input 1))]
             [(or (eq? input 'u) (eq? input 'undo)) (explore-undo s)]
-            [else s]))))))
+            [else s])))
+      s)))
 
 (define-syntax drive/stdio
   (syntax-rules (query)
