@@ -342,10 +342,10 @@
   (match exp-loc
     [(explore-loc (explore-node i chs xchs) parent)
      (let*-values ([(x-ind) (index-where xchs (lambda (xn) (= choice (explore-node-index xn))))]
-                   [(xc hes) (if (not x-ind) (values '() xchs) (split-at xchs x-ind))]
                    [(expanded-node) (if x-ind (list-ref xchs x-ind) (expand-choice-node chs step choice))]
-                   [(expanded-context) (explore-context choice (append xc hes) chs parent)])
+                   [(expanded-context) (explore-context choice xchs chs parent)])
        (explore-loc expanded-node expanded-context))]))
+
 (define (explore-undo exp-loc)
   (match exp-loc
     [(explore-loc tree (explore-context i siblings ch ctx))
